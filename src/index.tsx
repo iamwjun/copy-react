@@ -3,10 +3,11 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
-  <>
-    <h1>标题</h1>
-    <p>内容</p>
-  </>,
+  <div className='demo'>
+    <h1 className='title'>标题</h1>
+    <p className='content'>内容</p>
+    <h2 id='id'>id</h2>
+  </div>,
   document.getElementById('root')
 );
 
