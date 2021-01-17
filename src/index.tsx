@@ -1,14 +1,24 @@
 import ReactDOM from './copy-react/react-dom';
+import Component from './copy-react/Component';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 
-// class ClassComponet extends React.Component {
-//   render() {
-//     return (
-//       <div>类组件</div>
-//     )
-//   }
-// }
+//@ts-ignore
+class ClassComponet extends Component {
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  constructor(props: any) {
+    super(props)
+  }
+
+  render() {
+    return (
+      <div>
+        {/* @ts-ignore */}
+        <h1>{this.props.name}</h1>
+      </div>
+    )
+  }
+}
 
 function FunctionComponent(props: any) {
   return (
@@ -28,8 +38,14 @@ const jsx = (
       <li>2</li>
       <li>3</li>
     </ul>
+    <dl>
+      <dd><span>A</span><span>B</span></dd>
+      <dt><span>C</span><span>D</span></dt>
+    </dl>
     <a href="http://www.baidu.com">链接</a>
-    <FunctionComponent name="name" />
+    <FunctionComponent name="函数组件" />
+    {/* @ts-ignore */}
+    <ClassComponet name="类组件" />
   </div>
 );
 

@@ -1,3 +1,5 @@
+import { nodeModuleNameResolver } from "typescript";
+
 /**
  * vnode
  * type 原生标签>type string
@@ -15,7 +17,7 @@ function isStringOrNumber(str: string | number) {
   return typeof str === 'string' || typeof str === 'number';
 }
 
-function createNode(vnode: any) {
+function createNode(vnode: any): HTMLElement {
   const { type } = vnode;
   let node;
   // todo 根据虚拟dom节点, 生成真实dom节点
@@ -25,7 +27,9 @@ function createNode(vnode: any) {
     //文本数字节点
     node = updateTextComponent(vnode);
   } else if (typeof type === 'function') {
-    updateFunctionComponent(vnode);
+    node = type.prototype.isReactComponent
+      ? updateClassComponent(vnode)
+      : updateFunctionComponent(vnode);
   } else {
     console.log('什么也做不了')
   }
@@ -62,6 +66,14 @@ function updateTextComponent(vnode: any) {
 function updateFunctionComponent(vnode: any) {
   const { type, props } = vnode;
   const child = type(props);
+  const node = createNode(child);
+  return node;
+}
+
+function updateClassComponent(vnode: any) {
+  const { type, props } = vnode;
+  const instance = new type(props);
+  const child = instance.render();
   const node = createNode(child);
   return node;
 }
