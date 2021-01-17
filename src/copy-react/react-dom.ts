@@ -31,7 +31,7 @@ function createNode(vnode: any): HTMLElement {
       ? updateClassComponent(vnode)
       : updateFunctionComponent(vnode);
   } else {
-    console.log('什么也做不了')
+    updateFragmentComponent(vnode);
   }
   return node;
 }
@@ -75,6 +75,12 @@ function updateClassComponent(vnode: any) {
   const instance = new type(props);
   const child = instance.render();
   const node = createNode(child);
+  return node;
+}
+
+function updateFragmentComponent(vnode: any) {
+  const node = document.createDocumentFragment();
+  reconcileChildren(node, vnode.props.children);
   return node;
 }
 
