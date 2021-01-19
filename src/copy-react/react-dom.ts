@@ -1,5 +1,3 @@
-import { nodeModuleNameResolver } from "typescript";
-
 /**
  * vnode
  * type 原生标签>type string
@@ -31,7 +29,7 @@ function createNode(vnode: any): HTMLElement {
       ? updateClassComponent(vnode)
       : updateFunctionComponent(vnode);
   } else {
-    updateFragmentComponent(vnode);
+    node = updateFragmentComponent(vnode);
   }
   return node;
 }
