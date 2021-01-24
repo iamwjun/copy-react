@@ -82,6 +82,36 @@ function updateFragmentComponent(vnode: any) {
   return node;
 }
 
+//下一个要渲染更新任务
+let nextUnitOfWork: any = null;
+
+function performUnitOfWork(workInProgress: any) {
+  // step1: 渲染更新fiber
+  // todo
+  // step2: 返回下一个
+  if (workInProgress.child) {
+    return workInProgress.child;
+  }
+  let nextFiber = workInProgress;
+  while (nextFiber) {
+    if (nextFiber.sibling) {
+      return nextFiber.sibling;
+    }
+    nextFiber = nextFiber.return;
+  }
+}
+
+function workLoop() {
+  while (nextUnitOfWork && IdleDeadline.timeRemaining > 1) {
+    // 渲染更新fiber, 并返回下一个
+    nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+    // commit
+    if (!nextUnitOfWork) { }
+  }
+}
+
+requestIdleCallback(workLoop);
+
 const ReactDOM = {
   render: render
 }
