@@ -62,15 +62,31 @@ function updateHostComponent(workInProgress: Fiber) {
   if (!workInProgress.statenode) {
     return createNode(workInProgress)
   }
-  // todo 协调子节点为
+  // todo 协调子节点
   reconcileChildren(workInProgress, workInProgress.props.children);
 }
 
 function reconcileChildren(workInProgress: Fiber, children: any) {
+  // todo 协调子节点方法
+  if (isStringOrNumber(children)) return;
+
   const newChildren = Array.isArray(children) ? children : [children];
+
   for (let i = 0; i < newChildren.length; i++) {
-    let child = newChildren[i];
-    render(child, parentNode);
+    let child = children[i];
+
+    let newFiber: Fiber = {
+      type: child.type,
+      props: { ...child.props },
+      child: null,
+      sibling: null,
+      return: null,
+      statenode: null,
+    }
+
+    if (i === 0) {
+      workInProgress.child = newFiber;
+    }
   }
 }
 
@@ -123,7 +139,7 @@ function performUnitOfWork(workInProgress: Fiber) {
   }
 }
 
-function workLoop() {
+function workLoop(IdleDeadline) {
   while (nextUnitOfWork && IdleDeadline.timeRemaining > 1) {
     // 渲染更新fiber, 并返回下一个
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
