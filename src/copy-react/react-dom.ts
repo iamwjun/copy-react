@@ -5,6 +5,26 @@
  *      函数组件>type function
  * props 属性 className href id children等等
  */
+
+/**
+ * fiber数据结构
+ * type 类型 string->原生标签 function->函数组件、类组件 other->Fragement组件
+ * props 属性
+ * child 子节点
+ * sibling 兄弟节点
+ * return 返回父节点
+ * statenode 原生dom节点
+ */
+
+interface Fiber {
+  type: any;
+  props: any;
+  child: any;
+  sibling: any;
+  return: any;
+  statenode: any;
+}
+
 function render(vnode: any, container: any, callback?: Function) {
   //console.log(vnode)
   const node = createNode(vnode);
@@ -15,40 +35,38 @@ function isStringOrNumber(str: string | number) {
   return typeof str === 'string' || typeof str === 'number';
 }
 
-function createNode(vnode: any): HTMLElement {
-  const { type } = vnode;
-  let node;
-  // todo 根据虚拟dom节点, 生成真实dom节点
-  if (typeof type === 'string') {
-    node = updateHostComponent(vnode)
-  } else if (isStringOrNumber(vnode)) {
-    //文本数字节点
-    node = updateTextComponent(vnode);
-  } else if (typeof type === 'function') {
-    node = type.prototype.isReactComponent
-      ? updateClassComponent(vnode)
-      : updateFunctionComponent(vnode);
-  } else {
-    node = updateFragmentComponent(vnode);
-  }
+function createNode(workInProgress: Fiber): HTMLElement {
+  const { type, props } = workInProgress;
+  let node = document.createElement(type);
+  updateNode(node, props);
+
   return node;
 }
 
 function updateNode(node: any, nextVal: any) {
-  Object.keys(nextVal).filter(k => k !== "children").forEach(k => {
-    node[k] = nextVal[k]
-  })
+  Object.keys(nextVal)
+    //.filter(k => k !== "children")
+    .forEach(k => {
+      if (k === "children") {
+        if (isStringOrNumber(nextVal[k])) {
+          node.textContent = nextVal[k] + ''
+        }
+      } else {
+        node[k] = nextVal[k]
+      }
+    })
 }
 
-function updateHostComponent(vnode: any) {
-  const { type, props } = vnode;
-  const node = document.createElement(type);
-  updateNode(node, props);
-  reconcileChildren(node, props.children);
-  return node;
+function updateHostComponent(workInProgress: Fiber) {
+  // todo 更新原生标签
+  if (!workInProgress.statenode) {
+    return createNode(workInProgress)
+  }
+  // todo 协调子节点为
+  reconcileChildren(workInProgress, workInProgress.props.children);
 }
 
-function reconcileChildren(parentNode: any, children: any) {
+function reconcileChildren(workInProgress: Fiber, children: any) {
   const newChildren = Array.isArray(children) ? children : [children];
   for (let i = 0; i < newChildren.length; i++) {
     let child = newChildren[i];
@@ -85,9 +103,13 @@ function updateFragmentComponent(vnode: any) {
 //下一个要渲染更新任务
 let nextUnitOfWork: any = null;
 
-function performUnitOfWork(workInProgress: any) {
+function performUnitOfWork(workInProgress: Fiber) {
   // step1: 渲染更新fiber
   // todo
+  const { type } = workInProgress;
+  if (typeof type === 'string') {
+    updateHostComponent(workInProgress);
+  }
   // step2: 返回下一个
   if (workInProgress.child) {
     return workInProgress.child;
