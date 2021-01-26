@@ -25,10 +25,16 @@ interface Fiber {
   statenode: any;
 }
 
+let wipRoot = null;
+// todo Fiber根节点
 function render(vnode: any, container: any, callback?: Function) {
   //console.log(vnode)
-  const node = createNode(vnode);
-  container.append(node);
+  wipRoot = {
+    type: 'div',
+    props: { ...vnode.props },
+    statenode: container
+  }
+  nextUnitOfWork = wipRoot;
 }
 
 function isStringOrNumber(str: string | number) {
@@ -64,6 +70,8 @@ function updateHostComponent(workInProgress: Fiber) {
   }
   // todo 协调子节点
   reconcileChildren(workInProgress, workInProgress.props.children);
+
+  console.log('workInProgress', workInProgress);
 }
 
 function reconcileChildren(workInProgress: Fiber, children: any) {
@@ -71,10 +79,10 @@ function reconcileChildren(workInProgress: Fiber, children: any) {
   if (isStringOrNumber(children)) return;
 
   const newChildren = Array.isArray(children) ? children : [children];
+  let preFiber: Fiber | null = null;
 
   for (let i = 0; i < newChildren.length; i++) {
-    let child = children[i];
-
+    let child = newChildren[i];
     let newFiber: Fiber = {
       type: child.type,
       props: { ...child.props },
@@ -86,35 +94,38 @@ function reconcileChildren(workInProgress: Fiber, children: any) {
 
     if (i === 0) {
       workInProgress.child = newFiber;
+    } else {
+      if (preFiber) preFiber.sibling = newFiber;
     }
+    preFiber = newFiber;
   }
 }
 
-function updateTextComponent(vnode: any) {
-  const node = document.createTextNode(vnode);
-  return node;
-}
+// function updateTextComponent(vnode: any) {
+//   const node = document.createTextNode(vnode);
+//   return node;
+// }
 
-function updateFunctionComponent(vnode: any) {
-  const { type, props } = vnode;
-  const child = type(props);
-  const node = createNode(child);
-  return node;
-}
+// function updateFunctionComponent(vnode: any) {
+//   const { type, props } = vnode;
+//   const child = type(props);
+//   const node = createNode(child);
+//   return node;
+// }
 
-function updateClassComponent(vnode: any) {
-  const { type, props } = vnode;
-  const instance = new type(props);
-  const child = instance.render();
-  const node = createNode(child);
-  return node;
-}
+// function updateClassComponent(vnode: any) {
+//   const { type, props } = vnode;
+//   const instance = new type(props);
+//   const child = instance.render();
+//   const node = createNode(child);
+//   return node;
+// }
 
-function updateFragmentComponent(vnode: any) {
-  const node = document.createDocumentFragment();
-  reconcileChildren(node, vnode.props.children);
-  return node;
-}
+// function updateFragmentComponent(vnode: any) {
+//   const node = document.createDocumentFragment();
+//   reconcileChildren(node, vnode.props.children);
+//   return node;
+// }
 
 //下一个要渲染更新任务
 let nextUnitOfWork: any = null;
@@ -139,8 +150,8 @@ function performUnitOfWork(workInProgress: Fiber) {
   }
 }
 
-function workLoop(IdleDeadline) {
-  while (nextUnitOfWork && IdleDeadline.timeRemaining > 1) {
+function workLoop(IdleDeadline: any) {
+  while (nextUnitOfWork && !IdleDeadline.didTimeout) {
     // 渲染更新fiber, 并返回下一个
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
     // commit
@@ -148,6 +159,7 @@ function workLoop(IdleDeadline) {
   }
 }
 
+//@ts-ignore
 requestIdleCallback(workLoop);
 
 const ReactDOM = {
