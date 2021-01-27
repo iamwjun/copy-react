@@ -1,5 +1,5 @@
 import ReactDOM from './copy-react/react-dom';
-import Component from './copy-react/Component';
+//import Component from './copy-react/Component';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 

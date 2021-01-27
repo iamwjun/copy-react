@@ -19,13 +19,13 @@
 interface Fiber {
   type: any;
   props: any;
-  child: any;
-  sibling: any;
-  return: any;
+  child?: any;
+  sibling?: any;
+  return?: any;
   statenode: any;
 }
 
-let wipRoot = null;
+let wipRoot: Fiber | null = null;
 // todo Fiber根节点
 function render(vnode: any, container: any, callback?: Function) {
   //console.log(vnode)
@@ -66,7 +66,7 @@ function updateNode(node: any, nextVal: any) {
 function updateHostComponent(workInProgress: Fiber) {
   // todo 更新原生标签
   if (!workInProgress.statenode) {
-    return createNode(workInProgress)
+    workInProgress.statenode = createNode(workInProgress)
   }
   // todo 协调子节点
   reconcileChildren(workInProgress, workInProgress.props.children);
@@ -88,7 +88,7 @@ function reconcileChildren(workInProgress: Fiber, children: any) {
       props: { ...child.props },
       child: null,
       sibling: null,
-      return: null,
+      return: workInProgress,
       statenode: null,
     }
 
@@ -151,16 +151,47 @@ function performUnitOfWork(workInProgress: Fiber) {
 }
 
 function workLoop(IdleDeadline: any) {
-  while (nextUnitOfWork && !IdleDeadline.didTimeout) {
+  while (nextUnitOfWork && IdleDeadline.timeRemaining() > 1) {
     // 渲染更新fiber, 并返回下一个
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
     // commit
-    if (!nextUnitOfWork) { }
+    if (!nextUnitOfWork && wipRoot) {
+      commitRoot();
+    }
   }
 }
 
 //@ts-ignore
 requestIdleCallback(workLoop);
+
+function commitRoot() {
+  if (wipRoot) commitWorker(wipRoot.child);
+  wipRoot = null;
+}
+
+function commitWorker(workInProgress: Fiber) {
+  if (!workInProgress) return;
+  // todo·渲染当前Fiber
+  // todo·找到parentNode
+  console.log('parentNodeFiber', workInProgress)
+  let parentNodeFiber = workInProgress.return;
+
+  while (!parentNodeFiber.statenode) {
+    parentNodeFiber = parentNodeFiber.return;
+  }
+
+  let parentNode = parentNodeFiber.statenode;
+  console.log(parentNode)
+
+  if (workInProgress.statenode) {
+    parentNode.appendChild(workInProgress.statenode)
+  }
+
+  // 子Fiber
+  commitWorker(workInProgress.child);
+  // 兄弟Fiber
+  commitWorker(workInProgress.sibling);
+}
 
 const ReactDOM = {
   render: render
