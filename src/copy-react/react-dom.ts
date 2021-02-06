@@ -16,6 +16,12 @@
  * statenode 原生dom节点
  */
 
+/**
+ * todo 执行流程
+ * !!! step1  render 构造根接点Fiber
+ * !!! step2  requestIdleCallback
+ */
+
 interface Fiber {
   type: any;
   props: any;
@@ -71,7 +77,24 @@ function updateHostComponent(workInProgress: Fiber) {
   // todo 协调子节点
   reconcileChildren(workInProgress, workInProgress.props.children);
 
-  console.log('workInProgress', workInProgress);
+  // console.log('workInProgress', workInProgress);
+}
+
+function updateFunctionComponent(workInProgress: Fiber) {
+  const { type, props } = workInProgress;
+  const child = type(props);
+  workInProgress = {
+    ...workInProgress,
+    type: child.type,
+    props: child.props,
+    return: workInProgress.return
+  }
+  if (!workInProgress.statenode) {
+    workInProgress.statenode = createNode(workInProgress)
+  }
+  console.log('updateFunctionComponent 02', workInProgress)
+  // console.log('function workInProgress', newFiber)
+  reconcileChildren(workInProgress, workInProgress.props.children);
 }
 
 function reconcileChildren(workInProgress: Fiber, children: any) {
@@ -128,7 +151,7 @@ function reconcileChildren(workInProgress: Fiber, children: any) {
 // }
 
 //下一个要渲染更新任务
-let nextUnitOfWork: any = null;
+let nextUnitOfWork: Fiber | null = null;
 
 function performUnitOfWork(workInProgress: Fiber) {
   // step1: 渲染更新fiber
@@ -136,6 +159,9 @@ function performUnitOfWork(workInProgress: Fiber) {
   const { type } = workInProgress;
   if (typeof type === 'string') {
     updateHostComponent(workInProgress);
+  } else if (typeof type === 'function') {
+    console.log('performUnitOfWork 01', workInProgress)
+    updateFunctionComponent(workInProgress);
   }
   // step2: 返回下一个
   if (workInProgress.child) {
@@ -171,9 +197,10 @@ function commitRoot() {
 
 function commitWorker(workInProgress: Fiber) {
   if (!workInProgress) return;
+  console.log(workInProgress)
   // todo·渲染当前Fiber
   // todo·找到parentNode
-  console.log('parentNodeFiber', workInProgress)
+  // console.log('parentNodeFiber', workInProgress)
   let parentNodeFiber = workInProgress.return;
 
   while (!parentNodeFiber.statenode) {
@@ -181,7 +208,6 @@ function commitWorker(workInProgress: Fiber) {
   }
 
   let parentNode = parentNodeFiber.statenode;
-  console.log(parentNode)
 
   if (workInProgress.statenode) {
     parentNode.appendChild(workInProgress.statenode)

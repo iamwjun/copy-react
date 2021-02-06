@@ -20,20 +20,18 @@ import reportWebVitals from './reportWebVitals';
 //   }
 // }
 
-// function FunctionComponent(props: any) {
-//   return (
-//     <div className="border">
-//       <p>{props.name}</p>
-//     </div>
-//   )
-// }
+function FunctionComponent(props: any) {
+  return (
+    <div className="border">{props.name}</div>
+  )
+}
 
 const jsx = (
   <div className='demo'>
     <h1 className='title'>标题</h1>
     <p className='content'>内容</p>
     <h2 id='id'>id</h2>
-    {/* <ul>
+    <ul>
       <li>1</li>
       <li>2</li>
       <li>3</li>
@@ -42,8 +40,8 @@ const jsx = (
       <dd><span>A</span><span>B</span></dd>
       <dt><span>C</span><span>D</span></dt>
     </dl>
-    <a href="http://www.baidu.com">链接</a> */}
-    {/* <FunctionComponent name="函数组件" /> */}
+    <a href="http://www.baidu.com">链接</a>
+    <FunctionComponent name="函数组件" />
     {/* @ts-ignore */}
     {/* <ClassComponet name="类组件" />
     <>
